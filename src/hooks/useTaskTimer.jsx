@@ -80,26 +80,26 @@ const useTaskTimer = (taskId) => {
 const startTimer = async () => {
     try {
         await axiosInstance.put(`/tasks/${taskId}/start`);
-        setSessionSeconds(0); 
-        setIsTiming(true);  
+        setSessionSeconds(0); // Reset session seconds
+        setIsTiming(true);  // Start the timer
     } catch (err) {
         console.error('Start timer failed:', err);
     }
 };
 
     // Stop Timer function
-    const stopTimer = async () => {
-        try {
-            await axiosInstance.put(`/tasks/${taskId}/stop`, {
-                time_spent: sessionSeconds, 
-            });
-            setTotalTimeSpent(prev => prev + sessionSeconds);
-            setSessionSeconds(0);
-            setIsTiming(false);
-        } catch (err) {
-            console.error('Stop timer failed:', err);
-        }
-    };
+const stopTimer = async () => {
+    try {
+        await axiosInstance.put(`/tasks/${taskId}/stop`, {
+            time_spent: sessionSeconds, // Send session time to the server
+        });
+        setTotalTimeSpent(prev => prev + sessionSeconds);
+        setSessionSeconds(0);
+        setIsTiming(false);
+    } catch (err) {
+        console.error('Stop timer failed:', err);
+    }
+};
 
     // Pause Timer function (when status is "To-do")
     const pauseTimer = async () => {
@@ -118,8 +118,8 @@ const startTimer = async () => {
 
     // Format the time (Ensure no negative time)
 const formatTime = (seconds) => {
-
-    const validSeconds = Math.max(0, seconds); 
+    // Ensure that time is not negative
+    const validSeconds = Math.max(0, seconds); // If seconds are negative, set it to 0
 
     const hours = String(Math.floor(validSeconds / 3600)).padStart(2, '0');
     const minutes = String(Math.floor((validSeconds % 3600) / 60)).padStart(2, '0');
