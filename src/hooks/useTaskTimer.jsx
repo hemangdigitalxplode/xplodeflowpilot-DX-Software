@@ -59,6 +59,7 @@ const useTaskTimer = (taskId) => {
             const hour = nowIST.hour();
             const minute = nowIST.minute();
 
+            // If time is 6:30 PM or later, stop the timer and update status
             if (isTiming && (hour > 18 || (hour === 18 && minute >= 30))) {
                 toast.info("Timer stopped automatically at 6:30 PM — Office time is over.");
                 console.log("timer stopped");
@@ -107,7 +108,7 @@ const useTaskTimer = (taskId) => {
                 time_spent: sessionSeconds, 
             });
             setPausedTime(prev => prev + sessionSeconds); 
-            setTotalTimeSpent(prev => prev + sessionSeconds);
+            setTotalTimeSpent(prev => prev + sessionSeconds); 
             setSessionSeconds(0); 
             setIsTiming(false); 
         } catch (err) {
@@ -115,12 +116,16 @@ const useTaskTimer = (taskId) => {
         }
     };
 
-    const formatTime = (seconds) => {
-        const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
-        const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
-        const s = String(seconds % 60).padStart(2, '0');
-        return `${h}:${m}:${s}`;
-    };
+    // Format the time (Ensure no negative time)
+const formatTime = (totalSeconds) => {
+    const validSeconds = Math.max(0, totalSeconds); 
+
+    const hours = String(Math.floor(validSeconds / 3600)).padStart(2, '0');
+    const minutes = String(Math.floor((validSeconds % 3600) / 60)).padStart(2, '0');
+    const seconds = String(validSeconds % 60).padStart(2, '0');
+
+    return `${hours}:${minutes}:${seconds}`;
+};
 
     return {
         seconds: totalTimeSpent + sessionSeconds + pausedTime,  
