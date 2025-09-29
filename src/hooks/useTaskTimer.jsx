@@ -77,15 +77,15 @@ const useTaskTimer = (taskId) => {
     }, [isTiming, taskId]);
 
     // Start Timer function
-    const startTimer = async () => {
-        try {
-            await axiosInstance.put(`/tasks/${taskId}/start`);
-            setSessionSeconds(0);
-            setIsTiming(true);
-        } catch (err) {
-            console.error('Start timer failed:', err);
-        }
-    };
+const startTimer = async () => {
+    try {
+        await axiosInstance.put(`/tasks/${taskId}/start`);
+        setSessionSeconds(0); 
+        setIsTiming(true);  
+    } catch (err) {
+        console.error('Start timer failed:', err);
+    }
+};
 
     // Stop Timer function
     const stopTimer = async () => {
@@ -117,14 +117,15 @@ const useTaskTimer = (taskId) => {
     };
 
     // Format the time (Ensure no negative time)
-const formatTime = (totalSeconds) => {
-    const validSeconds = Math.max(0, totalSeconds); 
+const formatTime = (seconds) => {
+
+    const validSeconds = Math.max(0, seconds); 
 
     const hours = String(Math.floor(validSeconds / 3600)).padStart(2, '0');
     const minutes = String(Math.floor((validSeconds % 3600) / 60)).padStart(2, '0');
-    const seconds = String(validSeconds % 60).padStart(2, '0');
+    const sec = String(validSeconds % 60).padStart(2, '0');
 
-    return `${hours}:${minutes}:${seconds}`;
+    return `${hours}:${minutes}:${sec}`;
 };
 
     return {
