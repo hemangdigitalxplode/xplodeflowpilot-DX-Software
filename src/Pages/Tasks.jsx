@@ -32,12 +32,13 @@ const Tasks = () => {
         setTasks(sorted);
         setFilteredTasks(sorted);
 
+        // Extract unique clients and statuses
         const uniqueClients = [...new Set(sorted.map(task => task.client?.name).filter(Boolean))];
         setClients(uniqueClients);
       } catch (error) {
         console.error('Error fetching tasks:', error);
       } finally {
-        setLoading(false); 
+        setLoading(false); // stop loader
       }
     };
 
@@ -76,7 +77,6 @@ const Tasks = () => {
   const resetFilter = () => {
     setFilters({ client: '', status: '', from: '', to: '' });
     setFilteredTasks(tasks);
-    setSearchTerm('');
   };
 
   const liveFilteredTasks = filteredTasks.filter(task =>
@@ -145,11 +145,6 @@ const Tasks = () => {
     {
       name: 'Total Time',
       selector: row => formatTime(row.total_time_spent),
-      sortable: true
-    },
-    {
-      name: 'Today Time',
-      selector: row => formatTime(row.today_time_spent),
       sortable: true
     },
     {

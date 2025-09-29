@@ -29,7 +29,7 @@ const TaskDetails = () => {
 
 
 
-    const { seconds, startTimer, stopTimer, pauseTimer, formatTime } = useTaskTimer(task.id);
+    const { seconds, startTimer, stopTimer, formatTime } = useTaskTimer(task.id);
 
     const openModal = () => setShowModal(true);
     const closeModal = () => setShowModal(false);
@@ -58,9 +58,32 @@ const TaskDetails = () => {
         }
     };
 
+
+    // const updateTaskStatus = async (newStatus) => {
+    //     setStatus(newStatus);
+
+    //     try {
+    //         await axiosInstance.put(`/tasks/${task.id}/status`, {
+    //             status: newStatus,
+    //             emp_id: employee.emp_id,
+    //         });
+
+    //         toast.success('Status updated successfully!');
+
+    //         if (newStatus === 'Working') {
+    //             startTimer();
+    //         } else if (newStatus === 'Completed' || newStatus === 'To-do') {
+    //             stopTimer();
+    //         }
+    //     } catch (error) {
+    //         console.error('Failed to update status', error);
+    //         toast.error('Could not update status.');
+    //     }
+    // };
+
     const updateTaskStatus = async (newStatus) => {
         try {
-            // Agar "Working" mark karna hai to pehle check karo
+            //Agar "Working" mark karna hai to pehle check karo
             if (newStatus === 'Working') {
                 const res = await axiosInstance.get(`/tasks/check-working/${employee.emp_id}`);
                 const existingTask = res.data.task;
@@ -71,7 +94,7 @@ const TaskDetails = () => {
                 }
             }
 
-            // Status update API call
+            //Status update API call
             setStatus(newStatus);
             await axiosInstance.put(`/tasks/${task.id}/status`, {
                 status: newStatus,
@@ -80,22 +103,17 @@ const TaskDetails = () => {
 
             toast.success('Status updated successfully!');
 
-            // Timer control
+            //Timer control
             if (newStatus === 'Working') {
                 startTimer();
-            } else if (newStatus === 'To-do' || newStatus === 'Completed') {
+            } else if (newStatus === 'Completed' || newStatus === 'To-do') {
                 stopTimer();
-            }
-
-            const now = new Date();
-            const cutoff = new Date();
-            cutoff.setHours(18, 30, 0);
-            if (newStatus === 'Working' && now > cutoff) {
-                await updateTaskStatus('To-do');
             }
 
         } catch (error) {
             console.error('Failed to update status', error);
+
+            // Backend se agar already working ka message aaya to show karo
             if (error.response?.data?.message) {
                 toast.warn(error.response.data.message);
             } else {
@@ -103,7 +121,6 @@ const TaskDetails = () => {
             }
         }
     };
-
 
 
     const handleFileChange = (e) => {
@@ -146,7 +163,7 @@ const TaskDetails = () => {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
             toast.success('Task submitted successfully!');
-            setIsSubmitted(true);
+            setIsSubmitted(true); // ✅ Mark it as submitted
             closeModal();
             navigate('/dashboard/task');
         } catch (error) {
@@ -176,7 +193,7 @@ const TaskDetails = () => {
                             fontSize: '1.1rem',
                             fontWeight: 500
                         }}>
-                            ⏱ Time Spent: {formatTime(seconds)} 
+                            ⏱ Time Spent: {formatTime(seconds)}
                         </div>
                     </div>
 
@@ -422,4 +439,3 @@ const TaskDetails = () => {
 };
 
 export default TaskDetails;
-
