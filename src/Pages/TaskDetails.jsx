@@ -15,7 +15,8 @@ const TaskDetails = () => {
     const { employee } = useUser();
     // const [task, setTasks] = useState([]);
     const task = state?.task;
-    const [status, setStatus] = useState(task?.status || 'To-do');
+    const [status, setStatus] = useState(task?.status || "To-do");
+    console.log(status);
     const [showModal, setShowModal] = useState(false);
     const [remarks, setRemarks] = useState('');
     const [selectedFiles, setSelectedFiles] = useState([]);
@@ -47,6 +48,7 @@ const TaskDetails = () => {
             setIsSubmitted(true);
         }
     }, [task]);
+
     const handleStatusChange = (e) => {
         const newStatus = e.target.value;
 
@@ -206,7 +208,6 @@ const TaskDetails = () => {
                     </button>
 
                     <div className="row g-3 mb-4">
-
                         {/* Row 1 */}
                         <div className="col-md-6">
                             <div className="row g-3">
@@ -222,6 +223,7 @@ const TaskDetails = () => {
                                         onChange={handleStatusChange}
                                         disabled={task.status === 'Completed'}
                                     >
+                                        <option value="Pending">Pending</option>
                                         <option value="To-do">To-do</option>
                                         <option value="Working">Working</option>
                                         <option value="Completed">Completed</option>
