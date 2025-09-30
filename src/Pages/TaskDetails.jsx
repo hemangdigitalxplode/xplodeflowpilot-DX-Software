@@ -8,15 +8,14 @@ import axiosInstance from '../api/axios';
 import { toast } from 'react-toastify';
 
 const TaskDetails = () => {
-    // 👇 new line
-    // const { id } = useParams();
+    // If you arrive via a link, state may be empty on hard refresh
+    const { id } = useParams();
     const { state } = useLocation();
     const navigate = useNavigate();
     const { employee } = useUser();
-    // const [task, setTasks] = useState([]);
-    const task = state?.task;
-    const [status, setStatus] = useState(task?.status || "To-do");
-    console.log(status);
+
+    const [task, setTask] = useState(state?.task || null);
+    const [status, setStatus] = useState(state?.task?.status || 'To-do');
     const [showModal, setShowModal] = useState(false);
     const [remarks, setRemarks] = useState('');
     const [selectedFiles, setSelectedFiles] = useState([]);
@@ -24,13 +23,30 @@ const TaskDetails = () => {
     const [pendingStatus, setPendingStatus] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
-    const [clients, setClients] = useState([]);
-    const [loading, setLoading] = useState(true);
 
+    // Fetch task if page is hard-refreshed and no state exists
+    useEffect(() => {
+        const load = async () => {
+            if (!task && id) {
+                try {
+                    const res = await axiosInstance.get(`/tasks/${id}`);
+                    if (res.data?.task) {
+                        setTask(res.data.task);
+                        setStatus(res.data.task.status || 'To-do');
+                    } else {
+                        toast.error('Task not found');
+                    }
+                } catch (e) {
+                    console.error('Failed to fetch task', e);
+                    toast.error('Could not load task');
+                }
+            }
+        };
+        load();
+    }, [id, task]);
 
-
-
-    const { seconds, startTimer, stopTimer, formatTime } = useTaskTimer(task.id);
+    const taskForTimerId = task?.id || state?.task?.id;
+    const { seconds, formatTime, rehydrate } = useTaskTimer(taskForTimerId);
 
     const openModal = () => setShowModal(true);
     const closeModal = () => setShowModal(false);
@@ -42,7 +58,8 @@ const TaskDetails = () => {
     } catch {
         documents = [];
     }
-    // To detect if the task already submitted or not
+
+    // Detect if already submitted
     useEffect(() => {
         if (task?.submissions?.length > 0) {
             setIsSubmitted(true);
@@ -51,7 +68,6 @@ const TaskDetails = () => {
 
     const handleStatusChange = (e) => {
         const newStatus = e.target.value;
-
         if (newStatus === 'Completed') {
             setPendingStatus(newStatus);
             setShowConfirmModal(true);
@@ -60,43 +76,19 @@ const TaskDetails = () => {
         }
     };
 
-
-    // const updateTaskStatus = async (newStatus) => {
-    //     setStatus(newStatus);
-
-    //     try {
-    //         await axiosInstance.put(`/tasks/${task.id}/status`, {
-    //             status: newStatus,
-    //             emp_id: employee.emp_id,
-    //         });
-
-    //         toast.success('Status updated successfully!');
-
-    //         if (newStatus === 'Working') {
-    //             startTimer();
-    //         } else if (newStatus === 'Completed' || newStatus === 'To-do') {
-    //             stopTimer();
-    //         }
-    //     } catch (error) {
-    //         console.error('Failed to update status', error);
-    //         toast.error('Could not update status.');
-    //     }
-    // };
-
+    // Single source of truth: backend handles pause/resume/accumulate
     const updateTaskStatus = async (newStatus) => {
         try {
-            //Agar "Working" mark karna hai to pehle check karo
+            if (!task) return;
             if (newStatus === 'Working') {
                 const res = await axiosInstance.get(`/tasks/check-working/${employee.emp_id}`);
                 const existingTask = res.data.task;
-
                 if (existingTask && existingTask.id !== task.id) {
                     toast.warn(`Your task ID → ${existingTask.task_id} is already in progress. Kindly stop it to start this one.`);
                     return;
                 }
             }
 
-            //Status update API call
             setStatus(newStatus);
             await axiosInstance.put(`/tasks/${task.id}/status`, {
                 status: newStatus,
@@ -104,18 +96,9 @@ const TaskDetails = () => {
             });
 
             toast.success('Status updated successfully!');
-
-            //Timer control
-            if (newStatus === 'Working') {
-                startTimer();
-            } else if (newStatus === 'Completed' || newStatus === 'To-do') {
-                stopTimer();
-            }
-
+            await rehydrate(); // pull fresh timer truth from server
         } catch (error) {
             console.error('Failed to update status', error);
-
-            // Backend se agar already working ka message aaya to show karo
             if (error.response?.data?.message) {
                 toast.warn(error.response.data.message);
             } else {
@@ -124,10 +107,7 @@ const TaskDetails = () => {
         }
     };
 
-
-    const handleFileChange = (e) => {
-        setSelectedFiles([...e.target.files]);
-    };
+    const handleFileChange = (e) => setSelectedFiles([...e.target.files]);
 
     const handleSubmitTask = async () => {
         if (!task || !employee) return;
@@ -136,27 +116,25 @@ const TaskDetails = () => {
             toast.info('This task has already been submitted.');
             return;
         }
-
         if (status !== 'Completed') {
             toast.error('Task must be marked as Completed before submission.');
             return;
         }
-
         if (!remarks.trim()) {
             toast.error('Please provide remarks before submitting the task.');
             return;
         }
 
-        setIsSubmitting(true); // disable button
+        setIsSubmitting(true);
 
         const formData = new FormData();
         formData.append('task_id', task.task_id);
         formData.append('emp_id', employee.emp_id);
         formData.append('client_id', task.client?.client_id || '');
         formData.append('remarks', remarks);
-        formData.append('time_spent', parseInt(seconds) || 0);
+        formData.append('time_spent', parseInt(seconds, 10) || 0);
 
-        selectedFiles.forEach(file => {
+        selectedFiles.forEach((file) => {
             formData.append('documents[]', file);
         });
 
@@ -165,7 +143,7 @@ const TaskDetails = () => {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
             toast.success('Task submitted successfully!');
-            setIsSubmitted(true); // ✅ Mark it as submitted
+            setIsSubmitted(true);
             closeModal();
             navigate('/dashboard/task');
         } catch (error) {
@@ -188,13 +166,15 @@ const TaskDetails = () => {
                 <div className="p-4">
                     <div className="d-flex justify-content-between align-items-center mb-4">
                         <h3 className="mb-0">Task Details</h3>
-                        <div style={{
-                            border: '2px solid #007bff',
-                            borderRadius: '8px',
-                            padding: '6px 12px',
-                            fontSize: '1.1rem',
-                            fontWeight: 500
-                        }}>
+                        <div
+                            style={{
+                                border: '2px solid #007bff',
+                                borderRadius: '8px',
+                                padding: '6px 12px',
+                                fontSize: '1.1rem',
+                                fontWeight: 500,
+                            }}
+                        >
                             ⏱ Time Spent: {formatTime(seconds)}
                         </div>
                     </div>
@@ -221,9 +201,8 @@ const TaskDetails = () => {
                                         className="form-select"
                                         value={status}
                                         onChange={handleStatusChange}
-                                        disabled={task.status === 'Completed'}
+                                        disabled={status === 'Completed'} // use live state, not initial task.status
                                     >
-                                        <option value="Pending">Pending</option>
                                         <option value="To-do">To-do</option>
                                         <option value="Working">Working</option>
                                         <option value="Completed">Completed</option>
@@ -245,14 +224,18 @@ const TaskDetails = () => {
                                     <input
                                         type="text"
                                         className="form-control"
-                                        value={task.assigned_date ? new Date(task.assigned_date).toLocaleString('en-GB', {
-                                            day: '2-digit',
-                                            month: '2-digit',
-                                            year: 'numeric',
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                            hour12: true,
-                                        }) : ''}
+                                        value={
+                                            task.assigned_date
+                                                ? new Date(task.assigned_date).toLocaleString('en-GB', {
+                                                    day: '2-digit',
+                                                    month: '2-digit',
+                                                    year: 'numeric',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit',
+                                                    hour12: true,
+                                                })
+                                                : ''
+                                        }
                                         readOnly
                                     />
                                 </div>
@@ -261,14 +244,18 @@ const TaskDetails = () => {
                                     <input
                                         type="text"
                                         className="form-control"
-                                        value={task.due_date ? new Date(task.due_date).toLocaleString('en-GB', {
-                                            day: '2-digit',
-                                            month: '2-digit',
-                                            year: 'numeric',
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                            hour12: true,
-                                        }) : ''}
+                                        value={
+                                            task.due_date
+                                                ? new Date(task.due_date).toLocaleString('en-GB', {
+                                                    day: '2-digit',
+                                                    month: '2-digit',
+                                                    year: 'numeric',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit',
+                                                    hour12: true,
+                                                })
+                                                : ''
+                                        }
                                         readOnly
                                     />
                                 </div>
@@ -281,8 +268,11 @@ const TaskDetails = () => {
                                     <label className="form-label">Priority</label>
                                     <input
                                         type="text"
-                                        className={`form-control ${task.priority === 'High' ? 'text-danger' :
-                                            task.priority === 'Moderate' ? 'text-warning' : 'text-success'
+                                        className={`form-control ${task.priority === 'High'
+                                                ? 'text-danger'
+                                                : task.priority === 'Moderate'
+                                                    ? 'text-warning'
+                                                    : 'text-success'
                                             }`}
                                         value={task.priority || ''}
                                         readOnly
@@ -300,11 +290,12 @@ const TaskDetails = () => {
                         {/* Row 3: Description */}
                         <div className="col-12">
                             <label className="form-label">Description</label>
-                            {/* <textarea rows={6} className="form-control" value={task.description || ''} readOnly /> */}
-                            <div className="form-control" style={{ minHeight: '150px' }} dangerouslySetInnerHTML={{ __html: task.description || '' }} />
-
+                            <div
+                                className="form-control"
+                                style={{ minHeight: '150px' }}
+                                dangerouslySetInnerHTML={{ __html: task.description || '' }}
+                            />
                         </div>
-
 
                         {/* Row 5: Documents */}
                         {documents.length > 0 && (
@@ -329,9 +320,7 @@ const TaskDetails = () => {
                                 })}
                             </div>
                         )}
-
                     </div>
-
 
                     <div className="col-md-12 mt-4">
                         <label className="form-label">Comments</label>
@@ -412,7 +401,9 @@ const TaskDetails = () => {
                             <div className="modal-body">
                                 <p>
                                     Are you sure you want to mark this task as <strong>Completed</strong>?<br />
-                                    <span className="text-danger">This action cannot be undone. If you have any doubts, please contact your admin before proceeding.</span>
+                                    <span className="text-danger">
+                                        This action cannot be undone. If you have any doubts, please contact your admin before proceeding.
+                                    </span>
                                 </p>
                             </div>
                             <div className="modal-footer">
@@ -425,7 +416,6 @@ const TaskDetails = () => {
                                         updateTaskStatus(pendingStatus);
                                         setShowConfirmModal(false);
                                         setPendingStatus(null);
-                                        // 👇 Trigger the submit task modal right after confirmation
                                         openModal();
                                     }}
                                 >
