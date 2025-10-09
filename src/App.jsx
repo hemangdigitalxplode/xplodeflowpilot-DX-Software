@@ -16,6 +16,7 @@ import Notifications from './Pages/Notifications';
 import Profile from './Pages/Profile';
 import PrivateRoute from './hooks/PrivateRoute';
 import UpdatePassword from './Pages/UpdatePassword';
+import Efficiency from './Pages/Efficiency';
 
 function App() {
   return (
@@ -65,6 +66,10 @@ function App() {
         <Route
           path="/dashboard/profile"
           element={<PrivateRoute><Profile /></PrivateRoute>}
+        />
+        <Route
+          path="/dashboard/efficiency"
+          element={<PrivateRoute><Efficiency /></PrivateRoute>}
         />
       </Routes>
 

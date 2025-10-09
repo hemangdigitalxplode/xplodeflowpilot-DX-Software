@@ -5,7 +5,7 @@ import Logo from '../assets/new-dx-logo-updated.png'
 import 'bootstrap-icons/font/bootstrap-icons.css'
 
 const Sidebar = () => {
-  const [collapsed, setCollapsed] = useState(true)
+  const [collapsed, setCollapsed] = useState(false)
 
   const toggleSidebar = () => {
     setCollapsed(!collapsed)
@@ -45,6 +45,18 @@ const Sidebar = () => {
           >
             <i className="bi bi-list-check"></i>
             {!collapsed && 'My Tasks'}
+          </NavLink>
+        </li>
+
+        <li className="nav-item mb-4">
+          <NavLink
+            to="/dashboard/efficiency"
+            className={({ isActive }) =>
+              `nav-link d-flex align-items-center gap-2 ${isActive ? 'active-link' : 'text-white'}`
+            }
+          >
+            <i className="bi bi-speedometer"></i>
+            {!collapsed && 'Efficiency'}
           </NavLink>
         </li>
 
