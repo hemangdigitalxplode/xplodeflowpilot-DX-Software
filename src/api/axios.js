@@ -1,19 +1,23 @@
 // axiosInstance.js
 import axios from 'axios';
 
+const token = localStorage.getItem('authToken');
+
 const axiosInstance = axios.create({
   baseURL: 'https://digitalxplode.in/admin/api',
   headers: {
     'Content-Type': 'application/json',
+    ...(token && { Authorization: `Bearer ${token}` }),
   },
 });
+
 
 // Interceptor to attach token dynamically
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
+    const newToken = localStorage.getItem('authToken');
+    if (newToken) {
+      config.headers['Authorization'] = `Bearer ${newToken}`;
     }
     return config;
   },
