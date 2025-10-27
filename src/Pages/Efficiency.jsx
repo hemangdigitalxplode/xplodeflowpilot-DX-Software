@@ -1,7 +1,7 @@
 import React from 'react'
 import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
-import EfficiencyBarChart from '../components/EfficiencyBarChart'
+import  Barchart from '../components/Barchart'
 
 const Efficiency = () => {
     return (
@@ -146,15 +146,12 @@ const Efficiency = () => {
                             </div>
                         </div>
 
-                        <div className="col-md-8 col-sm-12 mb-4">
-                              <EfficiencyBarChart/>
+                        {/* char start here */}
+
+                        <div className='col-md-8 col-sm-12 mb-4'>
+                            <Barchart/>
 
                         </div>
-
-
-
-
-
                     </div>
                 </div>
             </div>
