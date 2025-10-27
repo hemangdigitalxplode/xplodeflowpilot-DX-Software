@@ -1,6 +1,7 @@
 import React from 'react'
 import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
+import EfficiencyBarChart from '../components/EfficiencyBarChart'
 
 const Efficiency = () => {
     return (
@@ -144,6 +145,16 @@ const Efficiency = () => {
                                 </div>
                             </div>
                         </div>
+
+                        <div className="col-md-8 col-sm-12 mb-4">
+                              <EfficiencyBarChart/>
+
+                        </div>
+
+
+
+
+
                     </div>
                 </div>
             </div>
