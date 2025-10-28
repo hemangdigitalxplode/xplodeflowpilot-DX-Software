@@ -14,6 +14,52 @@ const Dashboard = () => {
   // console.log('Employee tasks:', employee?.tasks);
   const [employeeTasks, setEmployeeTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [metrics, setMetrics] = useState({
+    efficiency: 0,
+    workingHours: 0,
+    workingDays: 0,
+  });
+  const [month, setMonth] = useState(getCurrentMonth());
+
+  function getCurrentMonth() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  }
+
+
+  useEffect(() => {
+    if (employee?.emp_id && month) {
+
+      fetchMetrics(month);
+    }
+  }, [employee?.emp_id, month]);
+
+  const fetchMetrics = async (selectedMonth) => {
+    try {
+      setLoading(true);
+
+      const response = await axiosInstance.get("/employee/efficiency", {
+        params: {
+          emp_id: employee?.emp_id,
+          month: selectedMonth,
+        },
+      });
+
+      const data = response.data;
+      console.log(data)
+      setMetrics({
+        efficiency: data.metrics.efficiency || 0,
+        workingHours: data.metrics.total_time_spent || "00:00:00",
+        workingDays: data.metrics.working_days || 0,
+      });
+    } catch (error) {
+      console.error("Error fetching metrics:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
 
   // Provide greetings to employee
   const getGreeting = () => {
@@ -132,31 +178,64 @@ const Dashboard = () => {
           <div className="row mt-4">
             <div className="col-lg-8 mb-4">
               <UpcomingDeadlineTable data={employeeTasks} loading={loading} />
-
-
             </div>
             <div className="col-lg-4">
-              <MetricCard
-                title="Total Working Hours"
-                value="176 hrs"
-                icon="bi-clock-history"
-                bgColor="bg-info"
-                loading={loading}
-              />
-              <MetricCard
-                title="Your Total Working Days"
-                value="22 days"
-                icon="bi-calendar-check"
-                bgColor="bg-primary"
-                loading={loading}
-              />
-              <MetricCard
-                title="Your Efficiency"
-                value="89%"
-                icon="bi-bar-chart-line"
-                bgColor="bg-success"
-                loading={loading}
-              />
+              <div className="container mt-4">
+                {/* 🔸 Month Selector */}
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                  <h4 className="fw-bold text-dark">Employee Monthly Performance</h4>
+                  <select
+                    className="form-select w-auto shadow-sm"
+                    value={month}
+                    onChange={(e) => setMonth(e.target.value)}
+                  >
+                    {/* Generate last 6 months dynamically */}
+                    {Array.from({ length: 6 }, (_, i) => {
+                      const date = new Date();
+                      date.setMonth(date.getMonth() - i);
+                      const value = `${date.getFullYear()}-${String(
+                        date.getMonth() + 1
+                      ).padStart(2, "0")}`;
+                      const label = date.toLocaleString("default", {
+                        month: "long",
+                        year: "numeric",
+                      });
+                      return (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+
+                {/* 🔹 Metrics Section */}
+                <div className="row">
+                  <div className="">
+                    <MetricCard
+                      title="Total Working Hours"
+                      value={`${metrics.workingHours}`}
+                      icon="bi-clock-history"
+                      bgColor="bg-info"
+                      loading={loading}
+                    />
+                    <MetricCard
+                      title="Your Total Working Days"
+                      value={`${metrics.workingDays} days`}
+                      icon="bi-calendar-check"
+                      bgColor="bg-primary"
+                      loading={loading}
+                    />
+                    <MetricCard
+                      title="Your Efficiency"
+                      value={`${metrics.efficiency}%`}
+                      icon="bi-bar-chart-line"
+                      bgColor="bg-success"
+                      loading={loading}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
