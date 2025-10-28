@@ -26,24 +26,49 @@ const Tasks = () => {
       if (!employee?.emp_id) return;
 
       try {
-        const res = await axiosInstance.get(`/employee-tasks/${employee.emp_id}`);
-        console.log(res.data.tasks)
-        const sorted = res.data.tasks.sort((a, b) => new Date(b.assigned_date) - new Date(a.assigned_date));
+        setLoading(true);
+
+        // Map frontend filter names to backend query param names
+        const params = {
+          client_id: filters.client || "",   // backend expects client_id
+          status: filters.status || "",
+          from_date: filters.from || "",
+          to_date: filters.to || "",
+          // also include other filter params if you expose them in UI:
+          // deadline_date: filters.deadline || "",
+          // last_submission: filters.lastSubmission || "",
+        };
+
+        // Make GET request with query params
+        const res = await axiosInstance.get(`/employee-tasks/${employee.emp_id}`, {
+          params,
+        });
+
+        // backend returns res.data.tasks
+        const sorted = (res.data.tasks || []).sort(
+          (a, b) => new Date(b.assigned_date) - new Date(a.assigned_date)
+        );
+
+        // set tasks and filteredTasks (display list)
         setTasks(sorted);
         setFilteredTasks(sorted);
 
-        // Extract unique clients and statuses
-        const uniqueClients = [...new Set(sorted.map(task => task.client?.name).filter(Boolean))];
+        // Extract unique clients for the client dropdown if needed
+        const uniqueClients = [
+          ...new Set(sorted.map((task) => task.client?.name).filter(Boolean)),
+        ];
         setClients(uniqueClients);
       } catch (error) {
-        console.error('Error fetching tasks:', error);
+        console.error("Error fetching tasks:", error);
+        // optionally show toast/error state
       } finally {
-        setLoading(false); // stop loader
+        setLoading(false);
       }
     };
 
     fetchTasks();
-  }, [employee]);
+  }, [employee, filters]); // re-run whenever employee or filters change
+
 
   const formatTime = (totalSeconds) => {
     if (!totalSeconds || isNaN(totalSeconds)) return '00:00:00';
@@ -75,8 +100,8 @@ const Tasks = () => {
   }, [filters]);
 
   const resetFilter = () => {
-    setFilters({ client: '', status: '', from: '', to: '' });
-    setFilteredTasks(tasks);
+    setFilters({ client: "", status: "", from: "", to: "" });
+    // No need to call fetch here — useEffect will run because filters changed.
   };
 
   const liveFilteredTasks = filteredTasks.filter(task =>
@@ -202,63 +227,70 @@ const Tasks = () => {
             {/* Right: Filter + Search */}
             <div className="d-flex align-items-center gap-2 ms-auto">
               {/* Filter Button */}
-              <button
+              {/* <button
                 className="btn btn-primary btn-sm d-flex align-items-center gap-1"
                 data-bs-toggle="modal"
                 data-bs-target="#filterModal"
               >
                 <i className="bi bi-funnel"></i> Filter
-              </button>
+              </button> */}
 
 
 
               {/* Status Filter Buttons */}
               {/* Status Filter Buttons */}
               <div className="btn-group gap-2" role="group">
+                {/* Working Button */}
                 <button
-                  className="btn btn-warning btn-sm d-flex align-items-center gap-1"
-                  onClick={() => {
-                    const updated = { ...filters, status: 'Working' };
-                    setFilters(updated);
-                    setTimeout(() => handleFilter(), 0); // Run after state update
-                  }}
+                  className={`btn btn-sm d-flex align-items-center gap-1 ${filters.status === "Working" ? "btn-warning" : "btn-outline-warning"
+                    }`}
+                  onClick={() =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      status: prev.status === "Working" ? "" : "Working", // toggle
+                    }))
+                  }
                 >
                   <i className="bi bi-hourglass-split"></i> Working
                 </button>
 
+                {/* Completed Button */}
                 <button
-                  className="btn btn-success btn-sm d-flex align-items-center gap-1"
-                  onClick={() => {
-                    const updated = { ...filters, status: 'Completed' };
-                    setFilters(updated);
-                    setTimeout(() => handleFilter(), 0);
-                  }}
+                  className={`btn btn-sm d-flex align-items-center gap-1 ${filters.status === "Completed" ? "btn-success" : "btn-outline-success"
+                    }`}
+                  onClick={() =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      status: prev.status === "Completed" ? "" : "Completed",
+                    }))
+                  }
                 >
                   <i className="bi bi-check-circle"></i> Completed
                 </button>
 
+                {/* Pending / To-do Button */}
                 <button
-                  className="btn btn-danger btn-sm d-flex align-items-center gap-1"
-                  onClick={() => {
-                    const updated = { ...filters, status: 'To-do' };
-                    setFilters(updated);
-                    setTimeout(() => handleFilter(), 0);
-                  }}
+                  className={`btn btn-sm d-flex align-items-center gap-1 ${filters.status === "To-do" ? "btn-danger" : "btn-outline-danger"
+                    }`}
+                  onClick={() =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      status: prev.status === "To-do" ? "" : "To-do",
+                    }))
+                  }
                 >
                   <i className="bi bi-clock-fill"></i> Pending
                 </button>
 
+                {/* Clear Button */}
                 <button
-                  className="btn btn-secondary btn-sm d-flex align-items-center gap-1"
-                  onClick={() => {
-                    const updated = { ...filters, status: '' };
-                    setFilters(updated);
-                    setTimeout(() => handleFilter(), 0);
-                  }}
+                  className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
+                  onClick={resetFilter}
                 >
                   <i className="bi bi-x-circle"></i> Clear
                 </button>
               </div>
+
 
               {/* Search Input */}
               <div className="input-group" style={{ maxWidth: '280px' }}>
