@@ -1,8 +1,8 @@
 import { Clock } from "lucide-react"; // timer icon
 
-const TimeSpentCard = () => {
+const TimeSpentCard = ({ totalTime }) => {
     // Dummy data for now
-    const totalTime = "45:32:10"; // HH:MM:SS
+    // const totalTime = "45:32:10"; 
 
     return (
         <div className="mt-3 p-4 mb-4 text-center rounded-2xl bg-white hover:shadow-md transition-all">
@@ -19,7 +19,7 @@ const TimeSpentCard = () => {
 
                 {/* Time Text */}
                 <h2 className="font-bold text-gray-900 tracking-wide timerFont">
-                    {totalTime}
+                    {totalTime ? totalTime : "00:00:00"}
                 </h2>
             </div>
         </div>

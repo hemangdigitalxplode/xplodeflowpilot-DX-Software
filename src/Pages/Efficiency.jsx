@@ -1,3 +1,4 @@
+
 // import React from 'react'
 import React, { useState, useEffect } from "react";
 import { useUser } from '../context/UserContext';
@@ -21,6 +22,7 @@ const Efficiency = () => {
         punctuality: 0,
         productivity: 0,
         completion: 0,
+        time_spent: 0
     });
 
     //Define function OUTSIDE useEffect
@@ -39,11 +41,13 @@ const Efficiency = () => {
             });
 
             const data = response.data.metrics;
+            console.log(data)
             setMetrics({
                 efficiency: parseFloat(data.efficiency || 0),
                 punctuality: parseFloat(data.punctuality || 0),
                 productivity: parseFloat(data.productivity || 0),
                 completion: parseFloat(data.completion_rate || 0),
+                time_spent: data.total_time_spent || "00:00:00",
             });
 
         } catch (error) {
@@ -160,7 +164,7 @@ const Efficiency = () => {
                                     className="btn btn-primary w-100"
                                     onClick={handleFilter}
                                 >
-                                    Filter
+                                    Refresh
                                 </button>
                             </div>
                         </div>
@@ -214,7 +218,7 @@ const Efficiency = () => {
                                 </p>
                             </div>
                             <div className="mt-3 card shadow-sm p-3 mb-4 text-center">
-                                <TimeSpentCard />
+                                <TimeSpentCard totalTime={metrics.time_spent} />
                             </div>
                         </div>
 
