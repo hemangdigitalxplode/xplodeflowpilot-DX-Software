@@ -93,6 +93,18 @@ const Efficiency = () => {
         const circumference = 2 * Math.PI * radius;
         return circumference - (percent / 100) * circumference;
     };
+    const getOffset2Punctuality = (percent, radius) => {
+        const circumference = 2 * Math.PI * radius;
+        return circumference - (percent / 30) * circumference;
+    };
+    const getOffset2Productivity = (percent, radius) => {
+        const circumference = 2 * Math.PI * radius;
+        return circumference - (percent / 50) * circumference;
+    };
+    const getOffsetTaskCompletion = (percent, radius) => {
+        const circumference = 2 * Math.PI * radius;
+        return circumference - (percent / 20) * circumference;
+    };
     return (
         <div className="d-flex">
             <Sidebar />
@@ -253,7 +265,7 @@ const Efficiency = () => {
                                                     strokeWidth="8"
                                                     fill="none"
                                                     strokeDasharray="220"
-                                                    strokeDashoffset={getOffset(metrics.punctuality, 35)}
+                                                    strokeDashoffset={getOffset2Punctuality(metrics.punctuality, 35)}
                                                     transform="rotate(-90 40 40)"
                                                     style={{
                                                         transition: "stroke-dashoffset 1s ease-in-out",
@@ -296,7 +308,7 @@ const Efficiency = () => {
                                                     strokeWidth="8"
                                                     fill="none"
                                                     strokeDasharray="220"
-                                                    strokeDashoffset={getOffset(metrics.productivity, 35)}
+                                                    strokeDashoffset={getOffset2Productivity(metrics.productivity, 35)}
                                                     transform="rotate(-90 40 40)"
                                                     style={{
                                                         transition: "stroke-dashoffset 1s ease-in-out",
@@ -339,7 +351,7 @@ const Efficiency = () => {
                                                     strokeWidth="8"
                                                     fill="none"
                                                     strokeDasharray="220"
-                                                    strokeDashoffset={getOffset(metrics.completion, 35)}
+                                                    strokeDashoffset={getOffsetTaskCompletion(metrics.completion, 35)}
                                                     transform="rotate(-90 40 40)"
                                                     style={{
                                                         transition: "stroke-dashoffset 1s ease-in-out",

@@ -107,6 +107,17 @@ const TaskDetails = () => {
         }
     };
 
+    useEffect(() => {
+        if (window.CKEDITOR && document.getElementById("ckeditor-description")) {
+            window.CKEDITOR.replace("ckeditor-description", {
+                readOnly: true, // ✅ Read-only mode
+                toolbar: [], // ✅ Hide toolbar
+                removePlugins: "elementspath",
+                resize_enabled: false,
+            });
+        }
+    }, [task.description]);
+
     const handleFileChange = (e) => setSelectedFiles([...e.target.files]);
 
     const handleSubmitTask = async () => {
@@ -269,10 +280,10 @@ const TaskDetails = () => {
                                     <input
                                         type="text"
                                         className={`form-control ${task.priority === 'High'
-                                                ? 'text-danger'
-                                                : task.priority === 'Moderate'
-                                                    ? 'text-warning'
-                                                    : 'text-success'
+                                            ? 'text-danger'
+                                            : task.priority === 'Moderate'
+                                                ? 'text-warning'
+                                                : 'text-success'
                                             }`}
                                         value={task.priority || ''}
                                         readOnly

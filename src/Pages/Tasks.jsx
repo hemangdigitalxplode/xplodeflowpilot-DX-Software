@@ -354,7 +354,27 @@ const Tasks = () => {
                         border: '1px solid rgb(193, 221, 238)',
                       },
                     },
+                    // ✅ Blur ONLY future-dated tasks (keep colors visible)
+                    {
+                      when: row => {
+                        const assigned = new Date(row.assigned_date);
+                        const today = new Date();
+                        // check if assigned_date > today
+                        return (
+                          assigned.setHours(0, 0, 0, 0) >
+                          today.setHours(0, 0, 0, 0)
+                        );
+                      },
+                      style: {
+                        filter: 'blur(1.5px)',       // subtle blur
+                        opacity: '0.85',             // keep color visibility
+                        pointerEvents: 'none',       // disable clicks if you want
+                        transition: 'filter 0.3s ease',
+                      },
+                    },
                   ]}
+
+
                   customStyles={{
                     rows: {
                       style: {
