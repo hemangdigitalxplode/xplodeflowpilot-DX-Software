@@ -5,6 +5,7 @@ import { useUser } from '../context/UserContext';
 import { NavLink, useNavigate } from 'react-router-dom';
 import axiosInstance from '../api/axios';
 import DataTable from 'react-data-table-component';
+import { Lock } from "lucide-react";
 
 const Tasks = () => {
   const { employee } = useUser();
@@ -20,6 +21,7 @@ const Tasks = () => {
     from: '',
     to: ''
   });
+
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -69,6 +71,7 @@ const Tasks = () => {
     fetchTasks();
   }, [employee, filters]); // re-run whenever employee or filters change
 
+  console.log(tasks)
 
   const formatTime = (totalSeconds) => {
     if (!totalSeconds || isNaN(totalSeconds)) return '00:00:00';
@@ -234,9 +237,6 @@ const Tasks = () => {
               >
                 <i className="bi bi-funnel"></i> Filter
               </button> */}
-
-
-
               {/* Status Filter Buttons */}
               {/* Status Filter Buttons */}
               <div className="btn-group gap-2" role="group">
@@ -355,23 +355,38 @@ const Tasks = () => {
                       },
                     },
                     // ✅ Blur ONLY future-dated tasks (keep colors visible)
+                    // {
+                    //   when: row => {
+                    //     const assigned = new Date(row.assigned_date);
+                    //     const today = new Date();
+                    //     // check if assigned_date > today
+                    //     return (
+                    //       assigned.setHours(0, 0, 0, 0) >
+                    //       today.setHours(0, 0, 0, 0)
+                    //     );
+                    //   },
+                    //   style: {
+                    //     filter: 'blur(2.5px)',       // subtle blur
+                    //     opacity: '0.85',             // keep color visibility
+                    //     pointerEvents: 'none',       // disable clicks if you want
+                    //     transition: 'filter 0.3s ease',
+                    //   },
+                    // },
                     {
                       when: row => {
                         const assigned = new Date(row.assigned_date);
-                        const today = new Date();
-                        // check if assigned_date > today
-                        return (
-                          assigned.setHours(0, 0, 0, 0) >
-                          today.setHours(0, 0, 0, 0)
-                        );
+                        const now = new Date();
+
+                        // Only unblur when assigned date and time are reached or passed
+                        return assigned > now; // this means still in the future → keep blurred
                       },
                       style: {
-                        filter: 'blur(1.5px)',       // subtle blur
-                        opacity: '0.85',             // keep color visibility
-                        pointerEvents: 'none',       // disable clicks if you want
+                        filter: 'blur(2.5px)',       // blur effect
+                        opacity: '0.85',
+                        pointerEvents: 'none',
                         transition: 'filter 0.3s ease',
                       },
-                    },
+                    }
                   ]}
 
 

@@ -24,6 +24,8 @@ const TaskDetails = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
 
+
+
     // Fetch task if page is hard-refreshed and no state exists
     useEffect(() => {
         const load = async () => {
@@ -313,17 +315,31 @@ const TaskDetails = () => {
                             <div className="col-12">
                                 <label className="form-label">Attached Documents</label>
                                 {documents.map((file, index) => {
-                                    const fileExtension = file.split('.').pop().toLowerCase();
-                                    const fileUrl = `https://mockup4clients.com/task-management-backend/public/${file}`;
+                                    // Clean up escaped slashes
+                                    const cleanPath = file.replace(/\\/g, "/");
+                                    const fileExtension = cleanPath.split(".").pop().toLowerCase();
+
+                                    // Adjust your base URL according to your actual server path
+                                    const fileUrl = `https://digitalxplode.in/admin/public/${cleanPath}`;
+
                                     return (
                                         <div key={index} className="mb-2">
-                                            {['pdf'].includes(fileExtension) ? (
-                                                <iframe src={fileUrl} width="100%" height="400px" title={`doc-${index}`}></iframe>
-                                            ) : ['jpg', 'jpeg', 'png'].includes(fileExtension) ? (
-                                                <img src={fileUrl} alt={`doc-${index}`} className="img-fluid rounded border" />
+                                            {fileExtension === "pdf" ? (
+                                                <iframe
+                                                    src={fileUrl}
+                                                    width="100%"
+                                                    height="400px"
+                                                    title={`doc-${index}`}
+                                                ></iframe>
+                                            ) : ["jpg", "jpeg", "png", "gif", "webp"].includes(fileExtension) ? (
+                                                <img
+                                                    src={fileUrl}
+                                                    alt={`doc-${index}`}
+                                                    className="img-fluid rounded border"
+                                                />
                                             ) : (
                                                 <a href={fileUrl} target="_blank" rel="noopener noreferrer">
-                                                    {file.split('/').pop()}
+                                                    {cleanPath.split("/").pop()}
                                                 </a>
                                             )}
                                         </div>
