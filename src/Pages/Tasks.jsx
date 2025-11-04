@@ -130,9 +130,17 @@ const Tasks = () => {
         else if (row.status === 'Pending') badgeColor = 'danger';
 
         return (
-          <span className={`badge text-white bg-${badgeColor}`}>
-            {row.status}
-          </span>
+          <div className="d-flex flex-column align-items-start gap-1">
+            <span className={`badge text-white bg-${badgeColor}`}>
+              {row.status}
+            </span>
+
+            {row.is_overdue && (
+              <span className="badge bg-danger text-white">
+                Overdue
+              </span>
+            )}
+          </div>
         );
       }
     },

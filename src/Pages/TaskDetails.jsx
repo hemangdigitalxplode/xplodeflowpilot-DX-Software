@@ -190,6 +190,23 @@ const TaskDetails = () => {
                         >
                             ⏱ Time Spent: {formatTime(seconds)}
                         </div>
+                        {/* Overdue timer */}
+                        {task?.is_overdue && (
+                            <div
+                                style={{
+                                    border: '2px solid #dc3545', // red border
+                                    borderRadius: '8px',
+                                    padding: '6px 12px',
+                                    fontSize: '1.1rem',
+                                    fontWeight: 500,
+                                    color: '#dc3545', // red text
+                                    display: 'inline-block',
+                                    backgroundColor: '#fff5f5', // light red background for contrast
+                                }}
+                            >
+                                ⏱ Overdue Time : {task?.overdue_time_formatted}
+                            </div>
+                        )}
                     </div>
 
                     <button
