@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
@@ -7,10 +8,18 @@ import logo from '../assets/new-dx-logo-updated.png';
 import backgroundImg from '../assets/background.jpg';
 import { GoogleLogin } from '@react-oauth/google';
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { Navigate } from "react-router-dom";
 
 const EmployeeLogin = () => {
+
+  const employee = localStorage.getItem("employee");
+
+  if (employee) {
+    return <Navigate to="/dashboard/home" replace />;
+  }
+
   const navigate = useNavigate();
-  const [employeeId, setEmployeeId] = useState('');
+  // const [employeeId, setEmployeeId] = useState('');
   const [password, setPassword] = useState('');
   const [showpassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);

@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useUser } from '../context/UserContext';
+import dayjs from "dayjs";
 import {
     BarChart,
     Bar,
@@ -10,6 +12,8 @@ import {
     CartesianGrid,
     Cell,
 } from "recharts";
+
+import axiosInstance from "../api/axios";
 
 const data = [
     { month: "Jan", Efficiency: 85, Punctuality: 90, Productivity: 80 },
@@ -27,6 +31,58 @@ const data = [
 ];
 
 const Barchart = () => {
+    const { employee } = useUser();
+    console.log(employee?.emp_id)
+    const [month, setMonth] = useState(dayjs().format("YYYY-MM"));
+    const [metrics, setMetrics] = useState({
+        efficiency: 0,
+        punctuality: 0,
+        productivity: 0,
+        completion: 0,
+        time_spent: 0
+    });
+
+    //Define function OUTSIDE useEffect
+    const fetchMetrics = async () => {
+        if (!employee?.emp_id) {
+            console.warn("Employee ID not available yet");
+            return;
+        }
+
+        try {
+            const response = await axiosInstance.get(`/employee/efficiency`, {
+                params: {
+                    emp_id: employee.emp_id,
+                    month: month || dayjs().format("YYYY-MM"),
+                },
+            });
+
+            const data = response.data.metrics;
+            console.log(data)
+            setMetrics({
+                efficiency: parseFloat(data.efficiency || 0),
+                punctuality: parseFloat(data.punctuality || 0),
+                productivity: parseFloat(data.productivity || 0),
+                completion: parseFloat(data.completion_rate || 0),
+                time_spent: data.total_time_spent || "00:00:00",
+            });
+
+        } catch (error) {
+            console.error("Error fetching metrics:", error);
+        }
+    };
+
+    // Called when user clicks Filter button
+    const handleFilter = () => {
+        fetchMetrics();
+    };
+
+    // Auto-load once on mount
+    useEffect(() => {
+        if (employee?.emp_id && month) {
+            fetchMetrics();
+        }
+    }, [employee?.emp_id, month]); // runs only once
     const colors = {
         Efficiency: "#6366F1", // Indigo
         Punctuality: "#22C55E", // Green
@@ -47,7 +103,6 @@ const Barchart = () => {
                 style={{
                     textAlign: "center",
                     fontSize: "20px",
-
                     color: "#1e293b",
                     fontWeight: "700",
                     letterSpacing: "0.5px",

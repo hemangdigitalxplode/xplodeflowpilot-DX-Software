@@ -1,5 +1,5 @@
 const TaskCard = ({ title, count, bgColor, link, loading }) => (
-  <div className="col-md-3 mb-3">
+  <div className="mb-3">
     <div className={`card text-white ${bgColor} h-100`}>
       <div className="card-body">
         <h5 className="card-title">{title}</h5>

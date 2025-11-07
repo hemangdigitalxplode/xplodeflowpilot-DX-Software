@@ -47,10 +47,22 @@ const Tasks = () => {
         });
 
         // backend returns res.data.tasks
-        const sorted = (res.data.tasks || []).sort(
-          (a, b) => new Date(b.assigned_date) - new Date(a.assigned_date)
-        );
+        const sorted = (res.data.tasks || []).sort((a, b) => {
 
+          const today = new Date().setHours(0, 0, 0, 0);
+          const dateA = new Date(a.assigned_date).setHours(0, 0, 0, 0);
+          const dateB = new Date(b.assigned_date).setHours(0, 0, 0, 0);
+
+          const isTodayA = dateA === today;
+          const isTodayB = dateB === today;
+
+          // ✅ Put today's tasks first
+          if (isTodayA && !isTodayB) return -1;
+          if (!isTodayA && isTodayB) return 1;
+
+          // Otherwise, sort by most recent assigned_date (latest first)
+          return new Date(b.assigned_date) - new Date(a.assigned_date);
+        });
         // set tasks and filteredTasks (display list)
         setTasks(sorted);
         setFilteredTasks(sorted);
@@ -167,7 +179,6 @@ const Tasks = () => {
         );
       }
     },
-
     {
       name: 'Assigned Date',
       selector: row => new Date(row.assigned_date).toLocaleDateString('en-GB').replaceAll('/', '-'),
@@ -298,8 +309,6 @@ const Tasks = () => {
                   <i className="bi bi-x-circle"></i> Clear
                 </button>
               </div>
-
-
               {/* Search Input */}
               <div className="input-group" style={{ maxWidth: '280px' }}>
                 <span className="input-group-text bg-white border-end-0">

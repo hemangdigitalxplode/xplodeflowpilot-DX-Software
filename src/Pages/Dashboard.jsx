@@ -26,7 +26,6 @@ const Dashboard = () => {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   }
 
-
   useEffect(() => {
     if (employee?.emp_id && month) {
 
@@ -143,7 +142,14 @@ const Dashboard = () => {
               </div>
             </div>
           ) : (
-            <div className="row mt-4">
+            <div
+              className="mt-4"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(5, 1fr)",
+                gap: "1rem",
+              }}
+            >
               <TaskCard
                 title="Total Tasks"
                 count={employeeTasks.length}
@@ -172,7 +178,15 @@ const Dashboard = () => {
                 link="/dashboard/task"
                 loading={loading}
               />
+              <TaskCard
+                title="Working Task"
+                count={employeeTasks.filter(task => task.status === 'Working').length}
+                bgColor="bg-info"
+                link="/dashboard/task"
+                loading={loading}
+              />
             </div>
+
           )}
 
           <div className="row mt-4">
