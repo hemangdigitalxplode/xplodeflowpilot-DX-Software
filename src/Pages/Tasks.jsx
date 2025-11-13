@@ -6,9 +6,12 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import axiosInstance from '../api/axios';
 import DataTable from 'react-data-table-component';
 import { Lock } from "lucide-react";
+import BlurOverlay from '../components/BlurOverlay';
+import { toast } from "react-toastify";
 
 const Tasks = () => {
   const { employee } = useUser();
+  const emp_id = employee?.emp_id
   const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,6 +24,74 @@ const Tasks = () => {
     from: '',
     to: ''
   });
+
+  const [isPunchedIn, setIsPunchedIn] = useState(false);
+
+  // Check punch in status
+  useEffect(() => {
+    const checkPunchStatus = async () => {
+      if (!emp_id) return; // 🔸 Wait until emp_id is available
+
+      try {
+        const response = await axiosInstance.post('attendance/all', { emp_id });
+        const attendanceData = response.data;
+
+        // 🔹 Get today's date (IST)
+        const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+
+        // 🔹 Find today’s attendance entry
+        const todayRecord = attendanceData.find(record => {
+          const recordDate = new Date(record.created_at).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+          return recordDate === today;
+        });
+
+        if (todayRecord) {
+          // ✅ Status 1 = Punched In (enable Punch Out)
+          if (todayRecord.status === 1 && todayRecord.punch_in_time && !todayRecord.punch_out_time) {
+            setIsPunchedIn(true);
+          } else {
+            // ✅ Status 0 = Punched Out
+            setIsPunchedIn(false);
+          }
+        } else {
+          // ✅ No record today = not punched in
+          setIsPunchedIn(false);
+        }
+      } catch (error) {
+        console.error('Error fetching attendance:', error);
+      }
+    };
+
+    checkPunchStatus();
+  }, [emp_id]); // 🔸 Runs only when emp_id changes
+
+
+  // Handle punch in function
+  const handlePunchIn = async () => {
+    try {
+      const response = await axiosInstance.post("attendance/punch-in", {
+        emp_id,
+      });
+
+      if (response.status === 200) {
+        const now = new Date();
+        const formattedTime = now.toLocaleTimeString("en-IN", {
+          hour: "2-digit",
+          minute: "2-digit",
+          timeZone: "Asia/Kolkata",
+        });
+
+        setIsPunchedIn(true);
+        toast.success(`✅ Punch-in successful at ${formattedTime}`);
+      } else {
+        toast.error("Failed to punch in. Please try again.");
+      }
+    } catch (error) {
+      console.error("Punch-in failed:", error);
+      toast.error("Failed to punch in. Please try again.");
+    }
+  };
+
 
 
   useEffect(() => {
@@ -223,227 +294,236 @@ const Tasks = () => {
       <Sidebar />
       <div className="flex-grow-1" style={{ minHeight: '100vh', background: '#f9f9f9' }}>
         <Header />
-        <div className="p-4">
-          <div className="d-flex justify-content-between">
-            <button
-              className="btn btn-outline-dark rounded-circle mb-3"
-              style={{ width: '40px', height: '40px' }}
-              onClick={() => navigate(-1)}
-            >
-              <i className="bi bi-arrow-left"></i>
-            </button>
-            {/* Assign Task Button */}
-            <NavLink className='text-decoration-none' to={'/dashboard/add-task'}>
+        <div className='position-relative'>
+          <BlurOverlay
+            isBlurred={!isPunchedIn}
+            onPunchIn={handlePunchIn}
+            employeeName={employee?.name}
+            img={employee?.image_url}
+          />
+          <div className="p-4">
+            <div className="d-flex justify-content-between">
               <button
-                className="btn btn-primary btn-sm d-flex align-items-center gap-1"
+                className="btn btn-outline-dark rounded-circle mb-3"
+                style={{ width: '40px', height: '40px' }}
+                onClick={() => navigate(-1)}
               >
-                <i className="bi bi-plus-circle"></i>  Self Task Assign
+                <i className="bi bi-arrow-left"></i>
               </button>
-            </NavLink>
-          </div>
+              {/* Assign Task Button */}
+              <NavLink className='text-decoration-none' to={'/dashboard/add-task'}>
+                <button
+                  className="btn btn-primary btn-sm d-flex align-items-center gap-1"
+                >
+                  <i className="bi bi-plus-circle"></i>  Self Task Assign
+                </button>
+              </NavLink>
+            </div>
 
-          <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-            {/* Left: Heading */}
-            <h4 className="mb-0">My Tasks</h4>
+            <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+              {/* Left: Heading */}
+              <h4 className="mb-0">My Tasks</h4>
 
-            {/* Right: Filter + Search */}
-            <div className="d-flex align-items-center gap-2 ms-auto">
-              {/* Filter Button */}
-              {/* <button
+              {/* Right: Filter + Search */}
+              <div className="d-flex align-items-center gap-2 ms-auto">
+                {/* Filter Button */}
+                {/* <button
                 className="btn btn-primary btn-sm d-flex align-items-center gap-1"
                 data-bs-toggle="modal"
                 data-bs-target="#filterModal"
               >
                 <i className="bi bi-funnel"></i> Filter
               </button> */}
-              {/* Status Filter Buttons */}
-              {/* Status Filter Buttons */}
-              <div className="btn-group gap-2" role="group">
-                {/* Working Button */}
-                <button
-                  className={`btn btn-sm d-flex align-items-center gap-1 ${filters.status === "Working" ? "btn-warning" : "btn-outline-warning"
-                    }`}
-                  onClick={() =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      status: prev.status === "Working" ? "" : "Working", // toggle
-                    }))
-                  }
-                >
-                  <i className="bi bi-hourglass-split"></i> Working
-                </button>
+                {/* Status Filter Buttons */}
+                {/* Status Filter Buttons */}
+                <div className="btn-group gap-2" role="group">
+                  {/* Working Button */}
+                  <button
+                    className={`btn btn-sm d-flex align-items-center gap-1 ${filters.status === "Working" ? "btn-warning" : "btn-outline-warning"
+                      }`}
+                    onClick={() =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        status: prev.status === "Working" ? "" : "Working", // toggle
+                      }))
+                    }
+                  >
+                    <i className="bi bi-hourglass-split"></i> Working
+                  </button>
 
-                {/* Completed Button */}
-                <button
-                  className={`btn btn-sm d-flex align-items-center gap-1 ${filters.status === "Completed" ? "btn-success" : "btn-outline-success"
-                    }`}
-                  onClick={() =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      status: prev.status === "Completed" ? "" : "Completed",
-                    }))
-                  }
-                >
-                  <i className="bi bi-check-circle"></i> Completed
-                </button>
+                  {/* Completed Button */}
+                  <button
+                    className={`btn btn-sm d-flex align-items-center gap-1 ${filters.status === "Completed" ? "btn-success" : "btn-outline-success"
+                      }`}
+                    onClick={() =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        status: prev.status === "Completed" ? "" : "Completed",
+                      }))
+                    }
+                  >
+                    <i className="bi bi-check-circle"></i> Completed
+                  </button>
 
-                {/* Pending / To-do Button */}
-                <button
-                  className={`btn btn-sm d-flex align-items-center gap-1 ${filters.status === "To-do" ? "btn-danger" : "btn-outline-danger"
-                    }`}
-                  onClick={() =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      status: prev.status === "To-do" ? "" : "To-do",
-                    }))
-                  }
-                >
-                  <i className="bi bi-clock-fill"></i> Pending
-                </button>
+                  {/* Pending / To-do Button */}
+                  <button
+                    className={`btn btn-sm d-flex align-items-center gap-1 ${filters.status === "To-do" ? "btn-danger" : "btn-outline-danger"
+                      }`}
+                    onClick={() =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        status: prev.status === "To-do" ? "" : "To-do",
+                      }))
+                    }
+                  >
+                    <i className="bi bi-clock-fill"></i> Pending
+                  </button>
 
-                {/* Clear Button */}
-                <button
-                  className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
-                  onClick={resetFilter}
-                >
-                  <i className="bi bi-x-circle"></i> Clear
-                </button>
-              </div>
-              {/* Search Input */}
-              <div className="input-group" style={{ maxWidth: '280px' }}>
-                <span className="input-group-text bg-white border-end-0">
-                  <i className="bi bi-search"></i>
-                </span>
-                <input
-                  type="text"
-                  className="form-control border-start-0"
-                  placeholder="Search by ID, Subject, Client..."
-                  value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="table-responsive">
-            {loading ? (
-              <div className="text-center my-5">
-                <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
-                  <span className="visually-hidden">Loading...</span>
+                  {/* Clear Button */}
+                  <button
+                    className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
+                    onClick={resetFilter}
+                  >
+                    <i className="bi bi-x-circle"></i> Clear
+                  </button>
+                </div>
+                {/* Search Input */}
+                <div className="input-group" style={{ maxWidth: '280px' }}>
+                  <span className="input-group-text bg-white border-end-0">
+                    <i className="bi bi-search"></i>
+                  </span>
+                  <input
+                    type="text"
+                    className="form-control border-start-0"
+                    placeholder="Search by ID, Subject, Client..."
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                  />
                 </div>
               </div>
-            ) : (
-              <div className={`fade-in-table ${!loading ? 'show' : ''}`}>
-                <DataTable
-                  columns={columns}
-                  data={liveFilteredTasks}
-                  pagination
-                  paginationPerPage={30}
-                  striped
-                  highlightOnHover
-                  persistTableHead
-                  conditionalRowStyles={[
-                    {
-                      when: row => row.status === 'Completed',
-                      style: {
-                        backgroundColor: '#d4edda',
-                        border: '1px solid #c3e6cb',
-                      },
-                    },
-                    {
-                      when: row => row.status === 'Working',
-                      style: {
-                        backgroundColor: '#fff3cd',
-                        border: '1px solid #ffeeba',
-                      },
-                    },
-                    {
-                      when: row => row.status === 'Pending',
-                      style: {
-                        backgroundColor: '#f8d7da',
-                        border: '1px solid #f5c6cb',
-                      },
-                    },
-                    {
-                      when: row => row.status === 'To-do',
-                      style: {
-                        backgroundColor: 'rgb(193, 221, 238)',
-                        border: '1px solid rgb(193, 221, 238)',
-                      },
-                    },
-                    // ✅ Blur ONLY future-dated tasks (keep colors visible)
-                    // {
-                    //   when: row => {
-                    //     const assigned = new Date(row.assigned_date);
-                    //     const today = new Date();
-                    //     // check if assigned_date > today
-                    //     return (
-                    //       assigned.setHours(0, 0, 0, 0) >
-                    //       today.setHours(0, 0, 0, 0)
-                    //     );
-                    //   },
-                    //   style: {
-                    //     filter: 'blur(2.5px)',       // subtle blur
-                    //     opacity: '0.85',             // keep color visibility
-                    //     pointerEvents: 'none',       // disable clicks if you want
-                    //     transition: 'filter 0.3s ease',
-                    //   },
-                    // },
-                    {
-                      when: row => {
-                        const assigned = new Date(row.assigned_date);
-                        const now = new Date();
+            </div>
 
-                        // Only unblur when assigned date and time are reached or passed
-                        return assigned > now; // this means still in the future → keep blurred
+            <div className="table-responsive">
+              {loading ? (
+                <div className="text-center my-5">
+                  <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              ) : (
+                <div className={`fade-in-table ${!loading ? 'show' : ''}`}>
+                  <DataTable
+                    columns={columns}
+                    data={liveFilteredTasks}
+                    pagination
+                    paginationPerPage={30}
+                    striped
+                    highlightOnHover
+                    persistTableHead
+                    conditionalRowStyles={[
+                      {
+                        when: row => row.status === 'Completed',
+                        style: {
+                          backgroundColor: '#d4edda',
+                          border: '1px solid #c3e6cb',
+                        },
                       },
-                      style: {
-                        filter: 'blur(2.5px)',       // blur effect
-                        opacity: '0.85',
-                        pointerEvents: 'none',
-                        transition: 'filter 0.3s ease',
+                      {
+                        when: row => row.status === 'Working',
+                        style: {
+                          backgroundColor: '#fff3cd',
+                          border: '1px solid #ffeeba',
+                        },
                       },
-                    }
-                  ]}
+                      {
+                        when: row => row.status === 'Pending',
+                        style: {
+                          backgroundColor: '#f8d7da',
+                          border: '1px solid #f5c6cb',
+                        },
+                      },
+                      {
+                        when: row => row.status === 'To-do',
+                        style: {
+                          backgroundColor: 'rgb(193, 221, 238)',
+                          border: '1px solid rgb(193, 221, 238)',
+                        },
+                      },
+                      // ✅ Blur ONLY future-dated tasks (keep colors visible)
+                      // {
+                      //   when: row => {
+                      //     const assigned = new Date(row.assigned_date);
+                      //     const today = new Date();
+                      //     // check if assigned_date > today
+                      //     return (
+                      //       assigned.setHours(0, 0, 0, 0) >
+                      //       today.setHours(0, 0, 0, 0)
+                      //     );
+                      //   },
+                      //   style: {
+                      //     filter: 'blur(2.5px)',       // subtle blur
+                      //     opacity: '0.85',             // keep color visibility
+                      //     pointerEvents: 'none',       // disable clicks if you want
+                      //     transition: 'filter 0.3s ease',
+                      //   },
+                      // },
+                      {
+                        when: row => {
+                          const assigned = new Date(row.assigned_date);
+                          const now = new Date();
+
+                          // Only unblur when assigned date and time are reached or passed
+                          return assigned > now; // this means still in the future → keep blurred
+                        },
+                        style: {
+                          filter: 'blur(2.5px)',       // blur effect
+                          opacity: '0.85',
+                          pointerEvents: 'none',
+                          transition: 'filter 0.3s ease',
+                        },
+                      }
+                    ]}
 
 
-                  customStyles={{
-                    rows: {
-                      style: {
-                        border: '1px solid #dee2e6',
-                        backgroundColor: '#fff',
-                        padding: '6px 6px',
-                        fontSize: '0.99rem',
+                    customStyles={{
+                      rows: {
+                        style: {
+                          border: '1px solid #dee2e6',
+                          backgroundColor: '#fff',
+                          padding: '6px 6px',
+                          fontSize: '0.99rem',
+                        },
                       },
-                    },
-                    headRow: {
-                      style: {
-                        backgroundColor: '#f8f9fa',
-                        border: '1px solid #dee2e6',
+                      headRow: {
+                        style: {
+                          backgroundColor: '#f8f9fa',
+                          border: '1px solid #dee2e6',
+                        },
                       },
-                    },
-                    headCells: {
-                      style: {
-                        fontWeight: '600',
-                        fontSize: '0.95rem',
-                        padding: '12px',
-                        borderRight: '1px solid #dee2e6',
-                        backgroundColor: '#f1f1f1',
+                      headCells: {
+                        style: {
+                          fontWeight: '600',
+                          fontSize: '0.95rem',
+                          padding: '12px',
+                          borderRight: '1px solid #dee2e6',
+                          backgroundColor: '#f1f1f1',
+                        },
                       },
-                    },
-                    cells: {
-                      style: {
-                        padding: '4px',
-                        borderRight: '1px solid #dee2e6',
+                      cells: {
+                        style: {
+                          padding: '4px',
+                          borderRight: '1px solid #dee2e6',
+                        },
                       },
-                    },
-                  }}
-                />
-              </div>
-            )}
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+
           </div>
-
         </div>
+
       </div>
 
       {/* ✅ Filter Modal */}

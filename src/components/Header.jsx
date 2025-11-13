@@ -8,14 +8,85 @@ import axiosInstance from '../api/axios';
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { employee, setEmployee } = useUser(); // ✅ Combined useUser call
+  const { employee, setEmployee } = useUser();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [hidden, setHidden] = useState(true);
+  const emp_id = employee?.emp_id
+
+
 
   const handleLogout = () => {
     setEmployee(null);
     localStorage.removeItem('employee');
     toast.warn('Logged out successfully!');
     navigate('/');
+  };
+
+
+  // check punch in status 
+  useEffect(() => {
+    const checkPunchStatus = async () => {
+      if (!emp_id) return; // 🔸 Wait until emp_id is available
+
+      try {
+        const response = await axiosInstance.post('attendance/all', { emp_id });
+        const attendanceData = response.data;
+
+        // 🔹 Get today's date (IST)
+        const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+
+        // 🔹 Find today’s attendance entry
+        const todayRecord = attendanceData.find(record => {
+          const recordDate = new Date(record.created_at).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+          return recordDate === today;
+        });
+
+        if (todayRecord) {
+          // ✅ Status 1 = Punched In (enable Punch Out)
+          if (todayRecord.status === 1 && todayRecord.punch_in_time && !todayRecord.punch_out_time) {
+            setHidden(false);
+          } else {
+            // ✅ Status 0 = Punched Out
+            setHidden(true);
+          }
+        } else {
+          // ✅ No record today = not punched in
+          setHidden(true);
+        }
+      } catch (error) {
+        console.error('Error fetching attendance:', error);
+      }
+    };
+
+    checkPunchStatus();
+  }, [emp_id]); // 🔸 Runs only when emp_id changes
+
+
+  // funciton for punch-out
+  const handlePunchOut = async () => {
+    if (!emp_id) return;
+
+    try {
+      // 🔹 API Call
+      const response = await axiosInstance.post('attendance/punch-out', { emp_id });
+
+      // 🔹 Extract message & time
+      const { message, punch_out_time } = response.data;
+
+      // 🔹 Toast success
+      toast.success(`${message} at ${punch_out_time}`);
+
+      // 🔹 Optional small delay for user feedback
+      setTimeout(() => {
+        window.location.reload(); // refresh page to trigger blur + disable punch-out
+      }, 1500);
+
+    } catch (error) {
+      console.error('Punch-out failed:', error);
+      toast.error(
+        error.response?.data?.message || "Failed to punch out. Please try again."
+      );
+    }
   };
 
   // ✅ Fetch unread count safely
@@ -38,6 +109,13 @@ const Header = () => {
 
   return (
     <div className="d-flex justify-content-end align-items-center p-3 border-bottom">
+
+      <li style={{ listStyle: 'none' }} className='nav-item'>
+        <button className='btn btn-sm btn-warning mx-4 d-flex align-items-center gap-2' onClick={handlePunchOut} disabled={hidden}>
+          <span>Punch Out</span>
+          <i className="bi bi-power fs-6"></i>
+        </button>
+      </li>
       <li style={{ listStyle: 'none' }} className='nav-item'>
         <button className='btn btn-sm btn-danger mx-4 d-flex align-items-center gap-2' onClick={handleLogout}>
           <span>Logout</span>

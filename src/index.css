@@ -81,6 +81,60 @@
   font-size: 60px;
 }
 
+
+/* ✅ Only blurs content inside the container */
+.blur-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* background: rgba(255, 255, 255, 0.4); */
+  backdrop-filter: blur(6.5px);
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  /* keep it horizontally centered */
+  align-items: flex-start;
+  /* 👈 push content to top */
+  padding-top: 40px;
+  /* 👈 spacing from top */
+}
+
+.overlay-box {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  width: 90%;
+  padding: 30px;
+  text-align: center;
+  z-index: 20;
+}
+
+.blurred-content {
+  filter: blur(3px);
+  pointer-events: none;
+  user-select: none;
+  position: relative;
+  z-index: 1;
+}
+
+.personalized-box {
+  background: #fff;
+  border-radius: 12px;
+  max-width: 1000px;
+  width: 100%;
+  border: 2px solid #19b5e5;
+}
+
+.profile-img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border: 2px solid #007bff;
+}
+
 @keyframes bounce {
 
   0%,
