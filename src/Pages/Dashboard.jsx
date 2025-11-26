@@ -10,6 +10,7 @@ import { BsEye, BsExclamationCircleFill } from 'react-icons/bs'; // or use Boots
 
 const Dashboard = () => {
   const { employee } = useUser()
+  // console.log(employee?.status)
   // console.log(employee)
   // console.log('Employee tasks:', employee?.tasks);
   const [employeeTasks, setEmployeeTasks] = useState([]);

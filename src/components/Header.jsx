@@ -12,6 +12,7 @@ const Header = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [hidden, setHidden] = useState(true);
   const emp_id = employee?.emp_id
+  const [workTime, setWorkTime] = useState("00:00:00");
 
 
 
@@ -89,7 +90,26 @@ const Header = () => {
     }
   };
 
-  // ✅ Fetch unread count safely
+  // Checking logged-in time
+  useEffect(() => {
+    const fetchTime = async () => {
+      try {
+        const res = await axiosInstance.get(`/employee/attendance-time/${emp_id}`);
+
+        if (res.data.status) {
+          setWorkTime(res.data.formatted);
+          console.log(res.data.formatted)
+        }
+
+      } catch (error) {
+        console.error("Error fetching time:", error);
+      }
+    };
+
+    fetchTime();
+  }, [emp_id]);
+
+  // Fetch unread count safely
   useEffect(() => {
     if (employee?.emp_id) {
       axiosInstance.get(`notifications/unread-count/${employee.emp_id}`)
@@ -109,6 +129,9 @@ const Header = () => {
 
   return (
     <div className="d-flex justify-content-end align-items-center p-3 border-bottom">
+
+      {/* Login timing comes here */}
+      <span className="text-dark">{workTime}</span>
 
       <li style={{ listStyle: 'none' }} className='nav-item'>
         <button className='btn btn-sm btn-warning mx-4 d-flex align-items-center gap-2' onClick={handlePunchOut} disabled={hidden}>

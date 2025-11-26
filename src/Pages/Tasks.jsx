@@ -26,44 +26,61 @@ const Tasks = () => {
   });
 
   const [isPunchedIn, setIsPunchedIn] = useState(false);
+  const [loginMsg, setLoginMsg] = useState(
+    "Kindly punch in here to unlock your today's tasks and mark your presence in the system."
+  );
 
   // Check punch in status
   useEffect(() => {
     const checkPunchStatus = async () => {
-      if (!emp_id) return; // 🔸 Wait until emp_id is available
+      if (!emp_id) return;
 
       try {
         const response = await axiosInstance.post('attendance/all', { emp_id });
         const attendanceData = response.data;
 
-        // 🔹 Get today's date (IST)
         const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
-        // 🔹 Find today’s attendance entry
         const todayRecord = attendanceData.find(record => {
-          const recordDate = new Date(record.created_at).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+          const recordDate = new Date(record.created_at).toLocaleDateString(
+            'en-CA',
+            { timeZone: 'Asia/Kolkata' }
+          );
           return recordDate === today;
         });
 
-        if (todayRecord) {
-          // ✅ Status 1 = Punched In (enable Punch Out)
-          if (todayRecord.status === 1 && todayRecord.punch_in_time && !todayRecord.punch_out_time) {
-            setIsPunchedIn(true);
-          } else {
-            // ✅ Status 0 = Punched Out
-            setIsPunchedIn(false);
-          }
-        } else {
-          // ✅ No record today = not punched in
+        // ==========================
+        // 🔥 Message Logic Starts Here
+        // ==========================
+
+        if (!todayRecord) {
+          // ❌ No punch-in today
           setIsPunchedIn(false);
+          setLoginMsg("Kindly punch in here to unlock your today's tasks and mark your presence in the system.");
+          return;
         }
+
+        // ✅ Punched in but not punched out yet
+        if (todayRecord.status === 1 && todayRecord.punch_in_time && !todayRecord.punch_out_time) {
+          setIsPunchedIn(true);
+          setLoginMsg("You are already punched-in for today. Kindly complete your tasks and punch-out when done.");
+          return;
+        }
+
+        // ⛔ Punched-out for today (cannot punch again)
+        if (todayRecord.status === 0 && todayRecord.punch_out_time) {
+          setIsPunchedIn(false);
+          setLoginMsg("You had successfully logged-out for today's session you cannot punch again today, kindly punch-in tomorrow. Thanks");
+          return;
+        }
+
       } catch (error) {
         console.error('Error fetching attendance:', error);
       }
     };
 
     checkPunchStatus();
-  }, [emp_id]); // 🔸 Runs only when emp_id changes
+  }, [emp_id]);
 
 
   // Handle punch in function
@@ -300,6 +317,7 @@ const Tasks = () => {
             onPunchIn={handlePunchIn}
             employeeName={employee?.name}
             img={employee?.image_url}
+            msg={loginMsg}
           />
           <div className="p-4">
             <div className="d-flex justify-content-between">
