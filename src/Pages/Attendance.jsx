@@ -87,6 +87,8 @@ const Attendance = () => {
                 totalAbsents={4}
               />
             </div>
+
+            {/* Shikha code stats here */}
           </div>
         </div>
       </div>
