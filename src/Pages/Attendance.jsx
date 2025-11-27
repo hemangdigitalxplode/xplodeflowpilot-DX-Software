@@ -4,6 +4,7 @@ import Header from '../components/Header'
 import AttendanceMetrics from '../components/AttendanceMetrics'
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import '../App.css'; 
 
 const Attendance = () => {
   const [date, setDate] = useState(new Date());
@@ -83,12 +84,16 @@ const Attendance = () => {
             <div className='col-md-4 col-12'>
               <AttendanceMetrics
                 totalWorkingDays={22}
+                totalHolidays={6}
+                totalAbsents={2}
                 totalPresent={18}
-                totalAbsents={4}
+                totalLeaves={5}
+                
               />
             </div>
 
-            {/* Shikha code stats here */}
+            {/* Shikha code stats */}
+           
           </div>
         </div>
       </div>

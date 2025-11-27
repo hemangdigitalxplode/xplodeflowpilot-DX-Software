@@ -241,3 +241,39 @@ svg:focus,
 .event-card:hover .position-absolute:last-child {
   opacity: 1;
 }
+
+.present-day abbr {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 40px;        /* circle ka size */
+    height: 40px;
+    margin: auto;       /* center karne ke liye */
+    border-radius: 50%;
+    background: #9df1b0;
+   
+    font-weight: 600;
+}
+
+.react-calendar__tile {
+font-size: 18px !important;
+    font-weight: 300 !important;
+}
+
+.present-day {
+    background: none !important;
+}
+
+.react-calendar__tile--active abbr{
+  display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 40px;        /* circle ka size */
+    height: 40px;
+    margin: auto;       /* center karne ke liye */
+    border-radius: 50%;
+    background: #006edc;
+}
+.react-calendar__tile--active {
+  background: none !important;
+}
