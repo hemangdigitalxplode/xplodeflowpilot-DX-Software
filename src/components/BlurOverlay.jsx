@@ -1,6 +1,6 @@
 import React from "react";
 
-const BlurOverlay = ({ isBlurred, onPunchIn, employeeName, img }) => {
+const BlurOverlay = ({ isBlurred, onPunchIn, employeeName, img, msg }) => {
     if (!isBlurred) return null; // Don’t render overlay if not blurred
 
     // Dynamic greeting based on current time
@@ -26,7 +26,7 @@ const BlurOverlay = ({ isBlurred, onPunchIn, employeeName, img }) => {
                         {getGreeting()}, <span className="text-primary">{employeeName}</span>
                     </h5>
                     <p className="text-muted mb-2 small">
-                        Kindly punch in here to unlock your today's tasks and mark your presence in the system.
+                        {msg}
                     </p>
                 </div>
 

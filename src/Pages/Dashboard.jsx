@@ -10,6 +10,7 @@ import { BsEye, BsExclamationCircleFill } from 'react-icons/bs'; // or use Boots
 
 const Dashboard = () => {
   const { employee } = useUser()
+  // console.log(employee?.status)
   // console.log(employee)
   // console.log('Employee tasks:', employee?.tasks);
   const [employeeTasks, setEmployeeTasks] = useState([]);
@@ -57,8 +58,6 @@ const Dashboard = () => {
       setLoading(false);
     }
   };
-
-
 
   // Provide greetings to employee
   const getGreeting = () => {
@@ -143,7 +142,7 @@ const Dashboard = () => {
             </div>
           ) : (
             <div
-              className="mt-4"
+              className="mt-4 total-tasks"
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(5, 1fr)",
@@ -288,7 +287,7 @@ const InfoCard = ({ title, value, icon, bgColor, loading }) => (
               <span>.</span>
             </div>
           ) : (
-            <h5 className="mb-0">{value}</h5>
+            <h5 className="mb-0" style={{fontSize:"14px"}}>{value}</h5>
           )}
         </div>
       </div>
