@@ -102,6 +102,8 @@ const AttendanceMetrics = ({ totalWorkingDays, totalHolidays, totalPresent, tota
 
 
                 {/* dulicate  Total .... */}
+
+                {/* Testing */}
                 <div className="col-md-6 col-sm-6">
                     <div className="card text-white bg-secondary h-100">
                         <div className="card-body">
