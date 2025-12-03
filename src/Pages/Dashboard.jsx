@@ -59,8 +59,6 @@ const Dashboard = () => {
     }
   };
 
-
-
   // Provide greetings to employee
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -144,7 +142,7 @@ const Dashboard = () => {
             </div>
           ) : (
             <div
-              className="mt-4"
+              className="mt-4 total-tasks"
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(5, 1fr)",
@@ -289,7 +287,7 @@ const InfoCard = ({ title, value, icon, bgColor, loading }) => (
               <span>.</span>
             </div>
           ) : (
-            <h5 className="mb-0">{value}</h5>
+            <h5 className="mb-0" style={{fontSize:"14px"}}>{value}</h5>
           )}
         </div>
       </div>

@@ -62,7 +62,7 @@ const Attendance = () => {
 
           <div className='row p-2'>
             <div className='col-md-8 col-12'>
-              <div className="border rounded p-3 bg-white">
+              <div className="border rounded  bg-white">
                 <Calendar
                   onChange={setDate}
                   value={date}
