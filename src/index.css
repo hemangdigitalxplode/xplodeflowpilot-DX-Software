@@ -256,8 +256,8 @@ button.react-calendar__tile.react-calendar__month-view__days__day.present-day {
     padding: 0;
 }
 .react-calendar__tile {
-font-size: 18px !important;
-    font-weight: 300 !important;
+  font-size: 18px !important;
+  font-weight: 300 !important;
 }
 
 .present-day {
@@ -280,6 +280,7 @@ button.react-calendar__tile.react-calendar__month-view__days__day {
      width: 100%;
     background: #006edc7a;
 }
+
 .react-calendar__tile--active {
   background: none !important;
 }

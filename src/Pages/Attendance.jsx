@@ -4,11 +4,13 @@ import Header from '../components/Header'
 import AttendanceMetrics from '../components/AttendanceMetrics'
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import '../App.css'; 
+import '../App.css';
+import axiosInstance from '../api/axios';
 
 const Attendance = () => {
   const [date, setDate] = useState(new Date());
   const [attendanceDates, setAttendanceDates] = useState([]);
+  const [holidayDates, setHolidayDates] = useState([]);
 
   // ✅ Example static data (replace with API data later)
   useEffect(() => {
@@ -22,9 +24,30 @@ const Attendance = () => {
     setAttendanceDates(presentDays);
   }, []);
 
+  // Function to fetch the holidays
+  useEffect(() => {
+    const fetchHolidays = async () => {
+      try {
+        const response = await axiosInstance.get('/office-holidays')
+        if (response.data.success) {
+          // Format the API date (YYYY-MM-DD)
+          const formatted = response.data.data.map(item => item.date);
+          setHolidayDates(formatted);
+          console.log(formatted);
+        }
+      } catch (error) {
+        console.error("Error fetching holidays:", error);
+      }
+    };
+    fetchHolidays();
+  }, [])
+
 
   const formatDate = (date) => {
-    return date.toISOString().split('T')[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   return (
@@ -71,9 +94,13 @@ const Attendance = () => {
                   tileClassName={({ date, view }) => {
                     if (view === 'month') {
                       const formatted = formatDate(date);
-                      // 🔹 Highlight green if in attendance list
+
                       if (attendanceDates.includes(formatted)) {
-                        return 'present-day';
+                        return 'present-day'; // Green highlight class
+                      }
+
+                      if (holidayDates.includes(formatted)) {
+                        return 'holiday-day'; // Red highlight class
                       }
                     }
                     return null;
@@ -88,12 +115,12 @@ const Attendance = () => {
                 totalAbsents={2}
                 totalPresent={18}
                 totalLeaves={5}
-                
+
               />
             </div>
 
             {/* Shikha code stats */}
-           
+
           </div>
         </div>
       </div>
