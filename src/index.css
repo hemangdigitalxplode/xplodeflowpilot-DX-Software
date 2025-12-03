@@ -246,15 +246,15 @@ svg:focus,
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 40px;
+  width: 100%;
   /* circle ka size */
-  height: 40px;
-  margin: auto;
-  /* center karne ke liye */
-  border-radius: 50%;
-  background: #9df1b0;
-
+  height: 50px;
+  background: #9df1b07d;
   font-weight: 600;
+}
+
+button.react-calendar__tile.react-calendar__month-view__days__day.present-day {
+  padding: 0;
 }
 
 .react-calendar__tile {
@@ -264,27 +264,68 @@ svg:focus,
 
 .present-day {
   background: none !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0px !important;
+  border-radius: 0;
+
+}
+
+button.react-calendar__tile.react-calendar__month-view__days__day {
+  padding: 0;
+  height: 50px;
 }
 
 .react-calendar__tile--active abbr {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 40px;
-  /* circle ka size */
-  height: 40px;
-  margin: auto;
-  /* center karne ke liye */
-  border-radius: 50%;
-  background: #006edc;
+  height: 50px;
+  width: 100%;
+  background: #006edc7a;
 }
 
 .react-calendar__tile--active {
   background: none !important;
 }
 
-.holiday-day abbr {
+
+@media screen and (max-width: 900px) {
+  .total-tasks {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1rem;
+  }
+}
+
+.react-calendar__month-view__days {
+  border: 1px solid #7c7c7c !important;
+
+}
+
+button.react-calendar__tile.react-calendar__month-view__days__day {
+  justify-content: center;
   display: flex;
+  align-items: center;
+}
+
+.react-calendar__tile {
+  border-right: 1px solid #7c7c7c !important;
+  border-bottom: 1px solid #7c7c7c !important;
+}
+
+
+.react-calendar__month-view__days__day:nth-child(7n) {
+  border-right: none !important;
+}
+
+
+.react-calendar__month-view__days__day:nth-last-child(-n+7) {
+  border-bottom: none !important;
+}
+
+.holiday-day abbr {
+  /* display: flex;
   justify-content: center;
   align-items: center;
   width: 40px;
@@ -292,5 +333,12 @@ svg:focus,
   margin: auto;
   border-radius: 50%;
   background: rgb(240, 193, 107);
+  font-weight: 600; */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 50px;
+  background: #ffc107;
   font-weight: 600;
 }
